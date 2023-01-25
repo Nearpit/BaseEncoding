@@ -1,5 +1,7 @@
 # BaseExplosion
 
-datagenerator - module to generate synthetic data
+## datagenerator
+module to generate synthetic data
 
-encoding - module of numerical features encoding 
+## encoding
+module of numerical features encoding 
