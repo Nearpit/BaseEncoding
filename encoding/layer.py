@@ -45,21 +45,9 @@ class IntegerBaseEncoder(layers.Layer):
 
 
 class FloatBaseEncoder(IntegerBaseEncoder):
-    def __init__(self, base=2, norm=True, max_column_width=32):
-        """ Keras layer to transform FLOAT values to the chosen base
-
-        Args:
-        base (int): Convert number to the base number system. The valid range is 2-36, the default value is 2.
-        norm (bool): Indicate whether normalize the rebased numerical values.
-        max_column_width (int): Set up the width of encoded values for the unificaiton. CAVEAT! Sign encoding takes one slot.
-
-
-        Auxiliary Functions:
-        _rebase_func: Rebase numerical values into a new base values
-        _padding_func: Pad rebased values with zeros on the right for the column size consistency
-        _split_func: Explode strings (e.g. ['10', '00']) into separate integer channels (e.g. [[1, 0], [0, 0]])
-        """
-        super().__init__(base, norm, max_column_width)
+    def __init__(self, **kwags):
+        """ Child class from IntegerBaseEncoder to transform FLOAT values to the chosen base"""
+        super().__init__(**kwags)
 
     def _frexp(self, inputs):
         """
