@@ -4,14 +4,14 @@ keras = tf.keras
 layers = tf.keras.layers
 
 
-class BaseEncoder(layers.Layer):
+class IntegerBaseEncoder(layers.Layer):
     def __init__(self, base=2, norm=True, max_column_width=32):
         """ Keras layer to transform numeric values to the chosen base
 
         Args:
         base (int): Convert number to the base number system. The valid range is 2-36, the default value is 2.
         norm (bool): Indicate whether normalize the rebased numerical values.
-        max_column_width (int): Set up the width of encoded values for the unificaiton
+        max_column_width (int): Set up the width of encoded values for the unificaiton. CAVEAT! Sign encoding takes one slot.
 
         
         Auxiliary Functions:
@@ -28,7 +28,7 @@ class BaseEncoder(layers.Layer):
 
 
         self._rebase_func = np.vectorize(np.base_repr)
-        self._padding_func = np.vectorize(lambda x: x.zfill(self.max_column_width))
+        self._padding_func = np.vectorize(lambda x: x.zfill(self.max_column_width-1))
         self._split_func = lambda arr: np.array([[[int(c, base=self.base) for c in row] for row in subarr] for subarr in arr], dtype=np.int32)
 
     def call(self, inputs, *args, **kwargs):
@@ -40,4 +40,17 @@ class BaseEncoder(layers.Layer):
         if self.norm:
             x = x / (self.base - 1)
         x = np.concatenate((neg_values, x), axis=-1)
+        return x
+
+
+class FloatBaseEncoder(IntegerBaseEncoder):
+    def __init__(self, base=2, norm=True, max_column_width=32):
+        super().__init__(base, norm, max_column_width)
+
+    def call(self, inputs, *args, **kwargs):
+        mantissa, exponent = np.frexp(inputs)
+        exponent = np.multiply(np.sign(mantissa), exponent).astype(int)
+        mantissa = np.expand_dims(np.abs(mantissa), axis=-1)
+        x = super().call(exponent, *args, **kwargs)
+        x = np.concatenate((mantissa, x), axis=-1)
         return x
