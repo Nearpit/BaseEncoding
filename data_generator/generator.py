@@ -29,7 +29,7 @@ class DataGenerator():
     def generate(self, n_features=10, n_samples=1e+4):
         
         """
-        Funtion to generate the data from the chosen distribution with provided parameters.
+        Funtion to generate the training data (both data samples and targets) from the chosen distribution with provided parameters.
 
         Args:
         n_features (int): Number of features in the generated dataset.
@@ -38,11 +38,13 @@ class DataGenerator():
 
         np.random.seed(self.seed)
 
+        # sampling from a chosen distribution 
         if self.dist == 'normal':
             samples = np.random.normal(self.mean, self.std, (n_samples, n_features))
         elif self.dist == 'lognormal':
             norm_samples = np.random.normal(self.mean, self.std, (n_samples, n_features))
             samples = np.exp(norm_samples)
+            # samples = np.random.lognormal(self.mean, self.std, (n_samples, n_features))
         elif self.dist == 'uniform':
             samples = np.random.uniform(self.mean, self.std, (n_samples, n_features))
         elif self.dist == 'exponential':
@@ -50,17 +52,21 @@ class DataGenerator():
         else:
             raise ValueError('Invalid Distribution')
 
+        # convert feature values to integer if specified
         if self.is_int:
             samples = np.round(samples).astype(int)
 
+        # generating random weights
         weights = np.random.uniform(0, 1, n_features)
 
+        # adding noise to the target is specified
         if self.noise:
-            eps = np.random.normal(0, 1)
+            eps = np.random.normal(0, 1, n_samples)
         else:
             eps = 0
 
-        target = np.dot(samples, weights)
+        # obtaining target dataset
+        target = np.dot(samples, weights) + eps
 
         return (samples, target)
 
