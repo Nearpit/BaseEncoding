@@ -26,7 +26,7 @@ class DataGenerator():
         self.nonlinear_func = nonlinear_func
         self.seed = seed
 
-    def generate(self, n_features=10, n_samples=1e+4):
+    def generate(self, n_features=10, n_samples=int(1e+4)):
         
         """
         Funtion to generate the training data (both data samples and targets) from the chosen distribution with provided parameters.
