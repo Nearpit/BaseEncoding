@@ -65,7 +65,7 @@ class FloatBaseEncoder(IntegerBaseEncoder):
         if mantissa_column_width:
             self.mantissa_column_width = mantissa_column_width
         else:
-            mantissa_column_width = self.column_width
+            self.mantissa_column_width = self.column_width
 
     def _get_decimals(self, values):
         """ Function which splits a float value by dot and return a fractional part """
