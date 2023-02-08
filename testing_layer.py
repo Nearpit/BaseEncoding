@@ -11,10 +11,10 @@ x = [[1, -2, 3, 4],
 x = tf.convert_to_tensor(x)
 layer = FloatBaseEncoder(base=3, norm=False, column_width=4, mantissa_column_width=11, only_integers=True)
 
-integer_layer = IntegerBaseEncoder(base=2, norm=False, column_width=4)
+integer_layer = IntegerBaseEncoder(base=2, norm=False, column_width=4, encode_sign=True)
+integer_layer_sign = IntegerBaseEncoder(base=2, norm=False, column_width=4, encode_sign=False)
+
 dense = tf.keras.layers.Dense(10)
 
-x = layer(x)
-
-
-print(x)
+print(integer_layer(x))
+print(integer_layer_sign(x))
