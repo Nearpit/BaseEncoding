@@ -13,7 +13,7 @@ from sklearn.linear_model import LinearRegression
 
 from data_generator import generator
 from encoding.layers import IntegerBaseEncoder, FloatBaseEncoder
-
+import pickle
 
 
 def set_seed(seed=42):
@@ -60,8 +60,6 @@ tranformations = {
                   'numerical encoding':[]
                  }
 
-def get_func(x, params):
-    return 
 i = 0
 for base in base_array:
     for norm in norm_array:
@@ -131,3 +129,5 @@ for seed in seeds:
                     y_hat = model.predict(transformed_x)
                     score = mse(y_hat, cur_y)
                     results.append({'x':x_name, 'y':y_name, 'transformation_name':transformation_name, 'params': transormation_loader['params'], 'score':score, 'history':history.history, 'seed':seed})
+                    with open(f'results.pkl', 'wb') as file:
+                        pickle.dump(results, file)
