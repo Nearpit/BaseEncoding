@@ -122,7 +122,7 @@ for seed in seeds:
             cur_x, cur_y = eval(x_name), eval(y_name)
             for transformation_name, transormation_loaders in tranformations.items():
                 for transormation_loader in transormation_loaders:
-                    print(x_name, y_name, transformation_name, transormation_loader['params'])
+                    print(seed, x_name, y_name, transformation_name, transormation_loader['params'])
                     transformed_x = transormation_loader['func'](cur_x)
                     model = MLP(transformed_x.shape[1], 1, width, depth=depth, activation=activation)
                     model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4), loss='mse')
