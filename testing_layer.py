@@ -113,7 +113,8 @@ epochs = 100
 activation = activation=keras.activations.relu
 
 results = []
-
+width = 128
+depth = 2
 for seed in seeds:
     set_seed(seed)
     for idx, x_name in enumerate(x_array):
@@ -123,11 +124,24 @@ for seed in seeds:
                 for transormation_loader in transormation_loaders:
                     print(x_name, y_name, transformation_name, transormation_loader['params'])
                     transformed_x = transormation_loader['func'](cur_x)
-                    model = MLP(transformed_x.shape[1], 1, 128, depth=2, activation=activation)
+                    model = MLP(transformed_x.shape[1], 1, width, depth=depth, activation=activation)
                     model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4), loss='mse')
                     history = model.fit(transformed_x, cur_y, epochs=epochs, verbose=0)
                     y_hat = model.predict(transformed_x)
                     score = mse(y_hat, cur_y)
-                    results.append({'x':x_name, 'y':y_name, 'transformation_name':transformation_name, 'params': transormation_loader['params'], 'score':score, 'history':history.history, 'seed':seed})
+                    results.append({'x':x_name, 
+                                    'y':y_name,
+                                    'transformation_name':transformation_name,
+                                    'params': transormation_loader['params'],
+                                    'score':score,
+                                    'history':history.history,
+                                    'depth': depth-1,
+                                    'width': width,
+                                    'seed':seed,
+                                    'n_samples' : n_samples,
+                                    'n_features' : n_features,
+                                    'mean' : mean,
+                                    'std' : std,
+                                    'epochs' : epochs})
                     with open(f'results.pkl', 'wb') as file:
                         pickle.dump(results, file)
