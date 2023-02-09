@@ -138,6 +138,8 @@ for seed in seeds:
                                     'depth': depth-1,
                                     'width': width,
                                     'seed':seed,
+                                    'n_samples' : n_samples,
+                                    'n_features' : n_features,
                                     'mean' : mean,
                                     'std' : std,
                                     'epochs' : epochs})
