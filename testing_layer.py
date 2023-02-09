@@ -49,7 +49,7 @@ base_array = range(2, 37)
 norm_array = [True, False]
 encode_sign_array = [True, False]
 only_integers_array = [True, False]
-seeds = range(5)
+seeds = range(6, 11)
 x_array = ['x_normal', 'x_exponential', 'x_lognormal']
 y_array = ['y_normal', 'y_exponential', 'y_lognormal']
 
