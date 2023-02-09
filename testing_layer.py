@@ -45,7 +45,7 @@ for dist_name in ['normal', 'exponential', 'lognormal']:
 
 
 standard = lambda x:(x - x.mean())/x.std()
-base_array = range(10, 37)
+base_array = range(2, 37)
 norm_array = [True, False]
 encode_sign_array = [True, False]
 only_integers_array = [True, False]
@@ -109,7 +109,7 @@ class MLP(keras.Model):
         return x
 
 
-epochs = 1
+epochs = 100
 activation = activation=keras.activations.relu
 
 results = []
