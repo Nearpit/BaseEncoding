@@ -6,7 +6,7 @@ import warnings
 import re
 
 class IntegerBaseEncoder(layers.Layer):
-    def __init__(self, base=2, norm=True, column_width=32, encode_sign=True):
+    def __init__(self, base=2, norm=True, column_width=32, encode_sign=True, trainable=False):
         """ Keras layer to transform INTEGER values to the chosen base
 
         Args:
@@ -21,16 +21,23 @@ class IntegerBaseEncoder(layers.Layer):
         _split_func: Explode strings (e.g. ['10', '00']) into separate integer channels (e.g. [[1, 0], [0, 0]])
         """
 
-        super().__init__()
+        super().__init__(trainable=trainable)
         self.base = base
         self.norm = norm
         self.column_width = column_width
         self.encode_sign = encode_sign
 
         self._rebase_func = np.vectorize(np.base_repr)
+        self._split_func = lambda arr: np.array(
+            [[[int(c, base=self.base) for c in row] for row in subarr] for subarr in arr], dtype=np.int32)
 
-        "Splitting list of rebased values into digits"
-        self._split_func = lambda arr: np.array([[re.findall(r'-?\d', x) for x in sublist] for sublist in arr], dtype=np.int32)
+
+    # def _split_func(self, arr):
+    #     "Splitting list of rebased values into digits"
+
+    #     print('', end='')
+    #     return np.array([[re.findall(r'-?[\d\w]{1}', x) for x in sublist] for sublist in arr], dtype=np.int32)    
+
 
     def _padding_func(self, x, column_width=0):
         """ Padding values with zeros to the left in order to ensure that exploding renders to the same size of vectors
