@@ -45,18 +45,21 @@ for dist_name in ['normal', 'exponential', 'lognormal']:
 
 
 standard = lambda x:(x - x.mean())/x.std()
-base_array = range(2, 37)
+base_array = [2, 4, 8, 16, 32, 36]
 norm_array = [True, False]
 encode_sign_array = [True, False]
 only_integers_array = [True, False]
 seeds = range(5)
-x_array = ['x_normal', 'x_exponential', 'x_lognormal']
-y_array = ['y_normal', 'y_exponential', 'y_lognormal']
+# x_array = ['x_normal', 'x_exponential', 'x_lognormal']
+# y_array = ['y_normal', 'y_exponential', 'y_lognormal']
+
+x_array = ['x_normal', 'x_exponential']
+y_array = ['y_normal', 'y_exponential']
 
 tranformations = {
                   'intact': [{'params':{'base':10, 'norm':False, 'encode_sign':None, 'only_integers':None}, 'func':lambda x: x}],
                   'standardization': [{'params':{'base':10, 'norm':True, 'encode_sign':None, 'only_integers':None,}, 'func':standard}],
-                  'higher dimensionality': [{'params':{'base':10, 'norm':False, 'encode_sign':None, 'only_integers':None}, 'func':lambda x, n=5: np.power(x, np.arange(1, n))}],
+                #   'higher dimensionality': [{'params':{'base':10, 'norm':False, 'encode_sign':None, 'only_integers':None}, 'func':lambda x, n=5: np.power(x, np.arange(1, n))}],
                   'numerical encoding':[]
                  }
 
@@ -109,7 +112,7 @@ class MLP(keras.Model):
         return x
 
 
-epochs = 100
+epochs = 1500
 activation = activation=keras.activations.relu
 
 results = []
@@ -126,6 +129,8 @@ for seed in seeds:
                     transformed_x = transormation_loader['func'](cur_x)
                     model = MLP(transformed_x.shape[1], 1, width, depth=depth, activation=activation)
                     model.compile(optimizer=keras.optimizers.Adam(learning_rate=1e-4), loss='mse')
+
+
                     history = model.fit(transformed_x, cur_y, epochs=epochs, verbose=0)
                     y_hat = model.predict(transformed_x)
                     score = mse(y_hat, cur_y)
