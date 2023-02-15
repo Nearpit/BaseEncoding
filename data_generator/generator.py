@@ -11,7 +11,7 @@ class DataGenerator():
         mean (float): The mean of the distribution.
         std (float): The standard deviation of the distribution (or scale parameter for exponential distribution).
         is_int (bool): Toggle to generate only integers instead of float numbers.
-        dist (str): The distribution used for generating data. Choose one from ['normal', 'lognormal', 'uniform', 'exponential']
+        dist (str): The distribution used for generating data. Choose one from ['norm', 'lognorm', 'expon', 'cauchy']
         is_nonlinear (bool): Choice whether to apply non-linear transformation on the data.
         nonlinear_func (str): The non-linear transformation used to apply to the data.
         seed(int): Set the random seed.
