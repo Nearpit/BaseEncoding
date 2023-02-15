@@ -11,13 +11,18 @@ class DataGenerator():
         mean (float): The mean of the distribution.
         std (float): The standard deviation of the distribution (or scale parameter for exponential distribution).
         is_int (bool): Toggle to generate only integers instead of float numbers.
+<<<<<<< HEAD
+        x_dist (str): The distribution used for generating sample data. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
+        y_dist (str): The distribution used for generating target data. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
+        w_dist (str): The distribution used for sampling weights from. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
+=======
         dist (str): The distribution used for generating data. Choose one from ['norm', 'lognorm', 'expon', 'cauchy']
+>>>>>>> 7b315b10212a6e220c710a1c1f8f90f685e4a6fa
         is_nonlinear (bool): Choice whether to apply non-linear transformation on the data.
         nonlinear_func (str): The non-linear transformation used to apply to the data.
         seed(int): Set the random seed.
 
         """
-
         self.mean = mean
         self.std = std
         self.noise = noise
@@ -31,6 +36,14 @@ class DataGenerator():
         self.kwargs = kwargs
 
     def generate(self, n_features=10, n_samples=int(1e+4), **kwargs):
+
+        """
+        Funtion to generate the training data (both data samples and targets) from the chosen distribution with provided parameters.
+
+        Args:
+        n_features (int): Number of features in the generated dataset.
+        n_samples (int): Number of instances in the generated dataset.
+        """
         
         # generating random weights
         w_dist = getattr(stats, self.w_dist)
@@ -46,6 +59,7 @@ class DataGenerator():
         else:
             eps = 0
 
+        # if X distribution is the same as Y distribution then generated samples will be used directly to generate targets
         if self.x_dist == self.y_dist:
             # generating sample dataset; lognormal distribution require different parameter
             samp_dist = getattr(stats, self.x_dist)
@@ -57,6 +71,7 @@ class DataGenerator():
             target = np.dot(samples, weights) + eps
 
         else:
+            # generating sample dataset; lognormal distribution require different parameter
             samp_dist = getattr(stats, self.x_dist)
             if self.x_dist == 'lognorm':
                 samples = samp_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
@@ -68,6 +83,7 @@ class DataGenerator():
                 mid_samples = mid_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
             else:
                 mid_samples = mid_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
+            # obtaining target dataset
             target = np.dot(mid_samples, weights) + eps
 
 
