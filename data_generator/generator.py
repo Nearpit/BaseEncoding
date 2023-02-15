@@ -1,7 +1,8 @@
 import numpy as np
+import scipy.stats as stats
 
 class DataGenerator():
-    def __init__(self, mean=0.0, std=1.0, noise=False, is_int=False, dist='normal', is_nonlinear=False, nonlinear_func='sigmoid', seed=123) -> None:
+    def __init__(self, mean=0.0, std=1.0, noise=False, is_int=False, x_dist='norm', y_dist='norm', w_dist='uniform', is_nonlinear=False, nonlinear_func='sigmoid', seed=123, **kwargs) -> None:
     
         """
         Args:
@@ -21,12 +22,59 @@ class DataGenerator():
         self.std = std
         self.noise = noise
         self.is_int = is_int
-        self.dist = dist
+        self.x_dist = x_dist
+        self.y_dist = y_dist
+        self.w_dist = w_dist
         self.is_nonlinear = is_nonlinear
         self.nonlinear_func = nonlinear_func
         self.seed = seed
+        self.kwargs = kwargs
 
-    def generate(self, n_features=10, n_samples=int(1e+4)):
+    def generate(self, n_features=10, n_samples=int(1e+4), **kwargs):
+        
+        # generating random weights
+        w_dist = getattr(stats, self.w_dist)
+        if self.w_dist == 'lognorm':
+            weights = w_dist.rvs(size = n_features, s = 1, scale = 1)
+        else:
+            weights = w_dist.rvs(size = n_features, loc = 0, scale = 1)
+        
+        # adding noise to the target is specified
+        eps_dist = getattr(stats, 'uniform')
+        if self.noise:
+            eps = eps_dist.rvs(size = n_samples, loc = 0, scale = 1)
+        else:
+            eps = 0
+
+        if self.x_dist == self.y_dist:
+            # generating sample dataset; lognormal distribution require different parameter
+            samp_dist = getattr(stats, self.x_dist)
+            if self.x_dist == 'lognorm':
+                samples = samp_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
+            else:
+                samples = samp_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
+            # obtaining target dataset
+            target = np.dot(samples, weights) + eps
+
+        else:
+            samp_dist = getattr(stats, self.x_dist)
+            if self.x_dist == 'lognorm':
+                samples = samp_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
+            else:
+                samples = samp_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
+
+            mid_dist = getattr(stats, self.y_dist)
+            if self.y_dist == 'lognorm':
+                mid_samples = mid_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
+            else:
+                mid_samples = mid_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
+            target = np.dot(mid_samples, weights) + eps
+
+
+        return (samples, target)
+
+
+    def np_generate(self, n_features=10, n_samples=int(1e+4)):
         
         """
         Funtion to generate the training data (both data samples and targets) from the chosen distribution with provided parameters.
