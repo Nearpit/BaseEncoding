@@ -9,7 +9,7 @@ def generate_data(gen_params, n_samples, n_features, **kwargs):
         dist = getattr(stats, dist_name)
         data = dist.rvs(size=[n_samples, n_features], **params)
 
-    return data
+    return np.sort(data, axis=0)
 
 
 class DataGenerator():
