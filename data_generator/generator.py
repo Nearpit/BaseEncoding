@@ -1,6 +1,17 @@
 import numpy as np
 import scipy.stats as stats
 
+
+def generate_data(gen_params, n_samples, n_features, **kwargs):
+
+    for dist_name, params in gen_params.items():
+        
+        dist = getattr(stats, dist_name)
+        data = dist.rvs(size=[n_samples, n_features], **params)
+
+    return data
+
+
 class DataGenerator():
     def __init__(self, mean=0.0, std=1.0, noise=False, is_int=False, x_dist='norm', y_dist='norm', is_nonlinear=False, nonlinear_func='sigmoid', seed=123, **kwargs) -> None:
     
