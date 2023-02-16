@@ -1,8 +1,19 @@
 import numpy as np
 import scipy.stats as stats
 
+
+def generate_data(gen_params, n_samples, n_features, **kwargs):
+
+    for dist_name, params in gen_params.items():
+        
+        dist = getattr(stats, dist_name)
+        data = dist.rvs(size=[n_samples, n_features], **params)
+
+    return data
+
+
 class DataGenerator():
-    def __init__(self, mean=0.0, std=1.0, noise=False, is_int=False, x_dist='norm', y_dist='norm', w_dist='uniform', is_nonlinear=False, nonlinear_func='sigmoid', seed=123, **kwargs) -> None:
+    def __init__(self, mean=0.0, std=1.0, noise=False, is_int=False, x_dist='norm', y_dist='norm', is_nonlinear=False, nonlinear_func='sigmoid', seed=123, **kwargs) -> None:
     
         """
         Args:
@@ -11,13 +22,9 @@ class DataGenerator():
         mean (float): The mean of the distribution.
         std (float): The standard deviation of the distribution (or scale parameter for exponential distribution).
         is_int (bool): Toggle to generate only integers instead of float numbers.
-<<<<<<< HEAD
         x_dist (str): The distribution used for generating sample data. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
         y_dist (str): The distribution used for generating target data. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
-        w_dist (str): The distribution used for sampling weights from. Choose one from ['norm', 'lognorm', 'uniform', 'expon', 'cauchy']
-=======
         dist (str): The distribution used for generating data. Choose one from ['norm', 'lognorm', 'expon', 'cauchy']
->>>>>>> 7b315b10212a6e220c710a1c1f8f90f685e4a6fa
         is_nonlinear (bool): Choice whether to apply non-linear transformation on the data.
         nonlinear_func (str): The non-linear transformation used to apply to the data.
         seed(int): Set the random seed.
@@ -29,7 +36,6 @@ class DataGenerator():
         self.is_int = is_int
         self.x_dist = x_dist
         self.y_dist = y_dist
-        self.w_dist = w_dist
         self.is_nonlinear = is_nonlinear
         self.nonlinear_func = nonlinear_func
         self.seed = seed
@@ -45,47 +51,15 @@ class DataGenerator():
         n_samples (int): Number of instances in the generated dataset.
         """
         
-        # generating random weights
-        w_dist = getattr(stats, self.w_dist)
-        if self.w_dist == 'lognorm':
-            weights = w_dist.rvs(size = n_features, s = 1, scale = 1)
-        else:
-            weights = w_dist.rvs(size = n_features, loc = 0, scale = 1)
-        
-        # adding noise to the target is specified
-        eps_dist = getattr(stats, 'uniform')
-        if self.noise:
-            eps = eps_dist.rvs(size = n_samples, loc = 0, scale = 1)
-        else:
-            eps = 0
 
-        # if X distribution is the same as Y distribution then generated samples will be used directly to generate targets
-        if self.x_dist == self.y_dist:
-            # generating sample dataset; lognormal distribution require different parameter
-            samp_dist = getattr(stats, self.x_dist)
-            if self.x_dist == 'lognorm':
-                samples = samp_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
-            else:
-                samples = samp_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
-            # obtaining target dataset
-            target = np.dot(samples, weights) + eps
+        samp_dist = getattr(stats, self.x_dist)
+        samples = samp_dist.rvs(size=(n_features, n_samples), **kwargs)
 
-        else:
-            # generating sample dataset; lognormal distribution require different parameter
-            samp_dist = getattr(stats, self.x_dist)
-            if self.x_dist == 'lognorm':
-                samples = samp_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
-            else:
-                samples = samp_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
+        targ_dist = getattr(stats, self.y_dist)
+        target = targ_dist.rvs(size=n_samples, **kwargs)
 
-            mid_dist = getattr(stats, self.y_dist)
-            if self.y_dist == 'lognorm':
-                mid_samples = mid_dist.rvs(size=(n_samples, n_features), s = self.mean, scale = self.std, **self.kwargs)
-            else:
-                mid_samples = mid_dist.rvs(size=(n_samples, n_features), loc = self.mean, scale = self.std, **self.kwargs)
-            # obtaining target dataset
-            target = np.dot(mid_samples, weights) + eps
-
+        samples = np.sort(samples)
+        target = np.sort(target)
 
         return (samples, target)
 
