@@ -1,5 +1,6 @@
-import os
-import random
+from utilities.funcs import set_seed
+from utilities import constants
+
 import tensorflow as tf
 keras = tf.keras
 layers = tf.keras.layers
@@ -16,28 +17,10 @@ from encoding.layers import _BaseEncoder, FloatBaseEncoder
 import pickle
 
 
-def set_seed(seed=42):
-    np.random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    os.environ['TF_DETERMINISTIC_OPS'] = '1'
-    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
-    
-    tf.random.set_seed(seed)
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    tf.config.threading.set_intra_op_parallelism_threads(1) 
-
-seed = 123
-set_seed(seed)
-n_samples = 10000
-n_features = 1
-mean = 1
-std = 0.6
 
 for dist_name in ['normal', 'exponential', 'lognormal']:
-    gen = generator.DataGenerator(mean=mean, std=std, dist=dist_name)
-    x, y = gen.generate(n_features=n_features, n_samples=n_samples)
+    gen = generator.DataGenerator(mean=constants.DISTS_LOC, std=constants.DISTS_SCALE, dist=dist_name)
+    x, y = gen.generate(n_features=constants.N_FEATURES, n_samples=constants.N_SAMPLES)
     x = np.ravel(x)
     order = np.argsort(x).reshape(-1, 1)
     x, y = x[order], y[order]
@@ -45,11 +28,7 @@ for dist_name in ['normal', 'exponential', 'lognormal']:
 
 
 standard = lambda x:(x - x.mean())/x.std()
-base_array = [2, 3, 4, 8, 16, 32, 36]
-norm_array = [True, False]
-encode_sign_array = [True, False]
-only_integers_array = [True, False]
-seeds = range(5)
+
 # x_array = ['x_normal', 'x_exponential', 'x_lognormal']
 # y_array = ['y_normal', 'y_exponential', 'y_lognormal']
 
@@ -92,7 +71,6 @@ class _MLPBlock(keras.layers.Layer):
 #         x = self.bn(x)
         return x
 
-# implement policy network
 class MLP(keras.Model):
     def __init__(self, input_dim, output_dim, hidden_dim=64, depth=1, **kwargs):
         super().__init__()
