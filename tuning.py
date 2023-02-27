@@ -73,8 +73,8 @@ if __name__ == '__main__':
                     results.append({'x':x_dist_name, 
                                     'y':y_dist_name,
                                     'transformation_name':transformation_name,
-                                    'params': transormation_loader['params'],
-                                    'params': trial.params
+                                    'transformation_params': transormation_loader['params'],
+                                    'nn_params': trial.params
                                     })
                     with open(f'best_params.pkl', 'wb') as file:
                         pickle.dump(results, file)
