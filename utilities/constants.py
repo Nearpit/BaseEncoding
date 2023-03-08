@@ -6,7 +6,6 @@ from encoding.layers import FloatBaseEncoder, IntegetBaseEncoder
 BASES_ARRAY = [2, 3, 4, 8, 16, 32, 36]
 EXPERIMENT_SEEDS = range(5)
 BOOL_ARRAY = [False, True]
-COLUMN_WIDTH = 32
 
 # Generation 
 SEED = 123
@@ -85,7 +84,7 @@ for base in BASES_ARRAY:
     for norm in BOOL_ARRAY:
         for keep_origin in BOOL_ARRAY:
             for only_integers in BOOL_ARRAY:
-                params = {'base':base, 'norm':norm, 'keep_origin':keep_origin, 'only_integers': only_integers, 'column_width':COLUMN_WIDTH}
+                params = {'base':base, 'norm':norm, 'keep_origin':keep_origin, 'only_integers': only_integers}
                 exec(f"layer_{_i} = FloatBaseEncoder(**params)")
                 exec(f"func_{_i} = lambda x: layer_{_i}(x)")
                 curr_dict = {'params':params, 'func': eval(f"func_{_i}")}
