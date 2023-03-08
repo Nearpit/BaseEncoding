@@ -51,31 +51,33 @@ def objective(trial):
 
 
 if __name__ == '__main__':
-    results = []
-    experiment_distributions = ['norm', 'expon', 'lognorm']
+    with open('best_params.pkl', 'rb') as file:
+        results = pickle.load(file)
+    experiment_distributions = ['norm', 'expon']
     dataset = load_toy_dataset(distribution_subset=experiment_distributions)
-    for x_dist_name, x in dataset['x'].items():
-        for y_dist_name, y in dataset['y'].items():
-            for transformation_name, transormation_loaders in constants.TRANSFORMATIONS.items():
-                for transormation_loader in transormation_loaders:
-                    funcs.set_seed(constants.SEED)
-                    print(f'x_{x_dist_name}', f'y_{y_dist_name}', transformation_name, transormation_loader['params'])
-                    transformed_x = transormation_loader['func'](x)
-                    study = optuna.create_study(direction="minimize")
-                    study.optimize(objective, n_trials=100)
-                    trial = study.best_trial
+    # for x_dist_name, x in dataset['x'].items():
+    x_dist_name, x = 'norm', dataset['x']['norm']
+    for y_dist_name, y in dataset['y'].items():
+        for transformation_name, transormation_loaders in constants.TRANSFORMATIONS.items():
+            for transormation_loader in transormation_loaders:
+                funcs.set_seed(constants.SEED)
+                print(f'x_{x_dist_name}', f'y_{y_dist_name}', transformation_name, transormation_loader['params'])
+                transformed_x = transormation_loader['func'](x)
+                study = optuna.create_study(direction="minimize")
+                study.optimize(objective, n_trials=100)
+                trial = study.best_trial
 
-                    print("  Value: {}".format(trial.value))
+                print("  Value: {}".format(trial.value))
 
-                    print("  Params: ")
-                    for key, value in trial.params.items():
-                        print("    {}: {}".format(key, value))
-                    results.append({'x':x_dist_name, 
-                                    'y':y_dist_name,
-                                    'transformation_name':transformation_name,
-                                    'params': transormation_loader['params'],
-                                    'params': trial.params
-                                    })
-                    with open(f'best_params.pkl', 'wb') as file:
-                        pickle.dump(results, file)
+                print("  Params: ")
+                for key, value in trial.params.items():
+                    print("    {}: {}".format(key, value))
+                results.append({'x':x_dist_name, 
+                                'y':y_dist_name,
+                                'transformation_name':transformation_name,
+                                'nn_params': trial.params,
+                                'transformation_params': transormation_loader['params']
+                                })
+                with open(f'best_params.pkl', 'wb') as file:
+                    pickle.dump(results, file)
 
