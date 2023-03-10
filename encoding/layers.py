@@ -139,7 +139,7 @@ class FloatBaseEncoder(_BaseEncoder):
         values = values.ravel()
         splitted_values = np.array([[int(x) for x in lists[1:]] for lists in np.char.split(values.astype(str), '.')])
 
-        return (splitted_values.reshape(initial_shape)*signs).astype(np.int32)
+        return (splitted_values.reshape(initial_shape)*signs).astype(np.int64)
 
     def _frexp(self, inputs):
         """
