@@ -84,7 +84,7 @@ for base in BASES_ARRAY:
     for norm in BOOL_ARRAY:
         for keep_origin in BOOL_ARRAY:
             for only_integers in BOOL_ARRAY:
-                params = {'base':base, 'norm':norm, 'keep_origin':keep_origin, 'only_integers': only_integers}
+                params = {'base':base, 'norm':norm, 'keep_origin':keep_origin}
                 exec(f"layer_{_i} = BaseEncoder(**params)")
                 exec(f"func_{_i} = lambda x: layer_{_i}(x)")
                 curr_dict = {'params':params, 'func': eval(f"func_{_i}")}
