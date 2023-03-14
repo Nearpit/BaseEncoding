@@ -86,7 +86,7 @@ class BaseDecoder(layers.Layer):
         neg_mask, vals = inputs[:, :, 0].astype(bool), inputs[:, :, 1:].astype(np.int32)
         vals = np.vectorize(lambda x: np.base_repr(x, base=self.base))(vals).astype(str)
 
-        abs_vals = np.apply_along_axis(lambda x: struct.unpack('!f', struct.pack('!i', int("".join(x), base=self.base))), -1, vals).squeeze()
+        abs_vals = np.apply_along_axis(lambda x: struct.unpack('!f', struct.pack('!i', int("".join(x), base=self.base))), -1, vals).squeeze(axis=-1)
 
         neg_vals = np.ones(abs_vals.shape)
         neg_vals[neg_mask] = -1
@@ -104,3 +104,11 @@ class CustomNormalization(Normalization):
         inputs = tf.expand_dims(inputs, axis=-1)
         normalized_values = super().call(inputs)
         return normalized_values
+    
+class Duplication(layers.Layer):
+    def __init__(self, width, trainable=False, **kwargs):
+        super().__init__(trainable, **kwargs)
+        self.width=width
+    def call(self, inputs, **kwargs):
+        outputs = inputs*tf.ones([inputs.shape[0], self.width]) 
+        return outputs
