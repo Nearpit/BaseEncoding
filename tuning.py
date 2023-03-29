@@ -3,16 +3,20 @@ import pickle
 
 import numpy as np 
 
+from sklearn.metrics import mean_squared_error as mse
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+physical_devices = tf.config.list_physical_devices('GPU') 
+for device in physical_devices:
+    tf.config.experimental.set_memory_growth(device, True)
 
 import utilities.constants as constants
 import utilities.funcs as funcs
 from utilities.dataset import load_toy_dataset
 
-from encoding.layers import FloatBaseEncoder, IntegetBaseEncoder
-
+from utilities.custom_layers import BaseEncoder
 
 
 def build_model(depth, width, lr, n_features):
@@ -39,11 +43,12 @@ def objective(trial):
     print(max_width, end='')
     
     model = build_model(depth, width, lr, n_features)
-    callback = [tf.keras.callbacks.EarlyStopping(monitor='loss', patience=constants.PATIENCE)]
-    history = model.fit(transformed_x, 
-                        y, 
-                        epochs=constants.EPOCHS,
-                        # epochs = 10,
+    callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
+    history = model.fit(transformed_x[:train_size], 
+                        y[:train_size], 
+                        validation_data = (transformed_x[train_size:train_size+valid_size], y[train_size:train_size+valid_size]),
+                        # epochs=constants.EPOCHS,
+                        epochs = 2,
                         batch_size=constants.BATCH_SIZE,
                         verbose=0,
                         callbacks=callback)
@@ -51,33 +56,68 @@ def objective(trial):
 
 
 if __name__ == '__main__':
-    with open('best_params.pkl', 'rb') as file:
-        results = pickle.load(file)
-    experiment_distributions = ['norm', 'expon']
-    dataset = load_toy_dataset(distribution_subset=experiment_distributions)
-    # for x_dist_name, x in dataset['x'].items():
-    x_dist_name, x = 'norm', dataset['x']['norm']
-    for y_dist_name, y in dataset['y'].items():
-        for transformation_name, transormation_loaders in constants.TRANSFORMATIONS.items():
-            for transormation_loader in transormation_loaders:
-                funcs.set_seed(constants.SEED)
-                print(f'x_{x_dist_name}', f'y_{y_dist_name}', transformation_name, transormation_loader['params'])
-                transformed_x = transormation_loader['func'](x)
-                study = optuna.create_study(direction="minimize")
-                study.optimize(objective, n_trials=100)
-                trial = study.best_trial
+    results = []
+    dataset = load_toy_dataset()
+    params_id = 0
 
-                print("  Value: {}".format(trial.value))
+    train_size = round(constants.TRAIN_SHARE*constants.N_SAMPLES)
+    valid_size = round(constants.VALID_SHARE*constants.N_SAMPLES)
+    test_size = round(constants.TEST_SHARE*constants.N_SAMPLES)
 
-                print("  Params: ")
-                for key, value in trial.params.items():
-                    print("    {}: {}".format(key, value))
-                results.append({'x':x_dist_name, 
-                                'y':y_dist_name,
-                                'transformation_name':transformation_name,
-                                'nn_params': trial.params,
-                                'transformation_params': transormation_loader['params']
-                                })
-                with open(f'best_params.pkl', 'wb') as file:
-                    pickle.dump(results, file)
+    for x_name, loader in dataset.items():
+        for variable in ['x', 'y_exp', 'y_lin', 'split']:
+            exec(f'{variable} = loader[variable]')
+        split = np.expand_dims(split, axis=0)[0]
+        for y, y_name in zip([y_lin, y_exp], ['lin', 'exp']):
+            for transformation_name, transormation_loaders in constants.TRANSFORMATIONS.items():
+                for transormation_loader in transormation_loaders:
+                    funcs.set_seed(constants.SEED)
+                    print(f'x_{x_name}', f'y_{y_name}', transformation_name, transormation_loader['params'])
+                    transformed_x = transormation_loader['func'](x)
+                    study = optuna.create_study(direction="minimize")
+                    study.optimize(objective, n_trials=2)
+                    trial = study.best_trial
+
+                    print("  Value: {}".format(trial.value))
+
+                    print("  Params: ")
+                    for key, value in trial.params.items():
+                        print("    {}: {}".format(key, value))
+                    print('SCORE')
+                    for seed in constants.EXPERIMENT_SEEDS:
+                        funcs.set_seed(seed)
+                        model = build_model(n_features=transformed_x.shape[-1], **trial.params)
+
+                        callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
+                        history = model.fit(transformed_x[:train_size], 
+                                            y[:train_size], 
+                                            validation_data = (transformed_x[train_size:train_size+valid_size], y[train_size:train_size+valid_size]),
+                                            # epochs=constants.EPOCHS,
+                                            epochs = 2,
+                                            batch_size=constants.BATCH_SIZE,
+                                            verbose=0,
+                                            callbacks=callback)
+                        y_hat = model.predict(transformed_x[-test_size:])
+                        y_pure = eval(f'funcs.{y_name}_func')(x)
+                        score_noised = mse(y_hat, y[-test_size:])
+                        score_pure = mse(y_hat, y_pure[-test_size:])
+                        print(score_noised, score_pure)
+                        results.append({'x':x_name, 
+                                        'y':y_name,
+                                        'params_id': params_id,
+                                        'transformation_name':transformation_name,
+                                        'nn_params': trial.params,
+                                        'transformation_params': transormation_loader['params'],
+                                        'score_noised': score_noised,
+                                        'score_pure' : score_pure,
+                                        'history':history.history['loss'],
+                                        'seed':seed,
+                                        'n_samples' : x.shape[0],
+                                        'n_features' : x.shape[1],
+                                        'epochs' : constants.EPOCHS
+                                        })
+                    params_id += 1
+                    print()
+                    with open(f'best_params.pkl', 'wb') as file:
+                        pickle.dump(results, file)
 

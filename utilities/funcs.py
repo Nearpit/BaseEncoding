@@ -2,7 +2,10 @@ import numpy as np
 import tensorflow as tf
 import random
 import os
-from encoding.layers import CustomNormalization
+from utilities.custom_layers import CustomNormalization
+
+lin_func = lambda x, a=2, b=5: a*x + b
+exp_func = lambda x, a=0.8, b=0.2: np.exp(a*x + b)
 
 
 def get_num_params(n, width, depth):
