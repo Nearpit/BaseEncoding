@@ -36,7 +36,9 @@ class BaseEncoder(layers.Layer):
         self._padding_func = lambda x: x.rjust(self.column_width - 1, '0')
 
     def _rebase_func(self, x):
-        return np.base_repr(struct.unpack('!i',struct.pack('!f', x))[0], base=self.base)
+        # return np.base_repr(struct.unpack('!i',struct.pack('!f', x))[0], base=self.base)
+        return np.base_repr(struct.unpack('!i',struct.pack('!e', x))[0], base=self.base)
+
 
 
     def call(self, inputs, training=False):

@@ -47,8 +47,7 @@ def objective(trial):
     history = model.fit(transformed_x[:train_size], 
                         y[:train_size], 
                         validation_data = (transformed_x[train_size:train_size+valid_size], y[train_size:train_size+valid_size]),
-                        # epochs=constants.EPOCHS,
-                        epochs = 2,
+                        epochs=constants.EPOCHS,
                         batch_size=constants.BATCH_SIZE,
                         verbose=0,
                         callbacks=callback)
@@ -75,7 +74,7 @@ if __name__ == '__main__':
                     print(f'x_{x_name}', f'y_{y_name}', transformation_name, transormation_loader['params'])
                     transformed_x = transormation_loader['func'](x)
                     study = optuna.create_study(direction="minimize")
-                    study.optimize(objective, n_trials=2)
+                    study.optimize(objective, n_trials=100)
                     trial = study.best_trial
 
                     print("  Value: {}".format(trial.value))
@@ -92,8 +91,7 @@ if __name__ == '__main__':
                         history = model.fit(transformed_x[:train_size], 
                                             y[:train_size], 
                                             validation_data = (transformed_x[train_size:train_size+valid_size], y[train_size:train_size+valid_size]),
-                                            # epochs=constants.EPOCHS,
-                                            epochs = 2,
+                                            epochs=constants.EPOCHS,
                                             batch_size=constants.BATCH_SIZE,
                                             verbose=0,
                                             callbacks=callback)
