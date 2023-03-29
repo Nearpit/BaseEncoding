@@ -7,8 +7,9 @@ import re
 import numpy  as np
 import scipy.stats as stats
 
-from utilities import constants
+from utilities import constants, funcs
 from utilities.funcs import set_seed
+
 
 def distribution_data_sampler(dist_name, params, n_samples, n_features, **kwargs):
     """Generating dataset based on the given parameters
@@ -22,36 +23,57 @@ def distribution_data_sampler(dist_name, params, n_samples, n_features, **kwargs
         
     dist = getattr(stats, dist_name)
     data = dist.rvs(size=[n_samples, n_features], **params)
-    return np.sort(data, axis=0)
+    return data
+
+
 
 def generate_toy_dataset():
     """ Generating a toy dataset based on predefined distributions.
     """
     set_seed(constants.SEED)
+    noise = stats.norm.rvs(size=(constants.N_SAMPLES, 1), loc=constants.NORM_LOC, scale=constants.NORM_SCALE)
+
+    index_array = np.arange(constants.N_SAMPLES)
+    train_size = round(constants.TRAIN_SHARE*constants.N_SAMPLES)
+    valid_size = round(constants.VALID_SHARE*constants.N_SAMPLES)
+    test_size = round(constants.TEST_SHARE*constants.N_SAMPLES)
+    split = { 'train' : index_array[:train_size],
+              'valid' : index_array[train_size:train_size+valid_size],
+              'test' : index_array[-test_size:]
+              }
+
     for distribution_name, params_list in constants.DISTRIGBUTIONS.items():
-        for name, n_features in zip(['x', 'y'], [constants.N_FEATURES, 1]):
-            for param_idx, params in enumerate(params_list):
-                if not param_idx:
-                    param_idx = ''
-                data = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, n_features)
-                np.savez_compressed(f'toy_dataset/{distribution_name}{param_idx}_{name}', data=data, params=params)
+        for param_idx, params in enumerate(params_list):
+            if not param_idx:
+                param_idx = ''
+            x = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, constants.N_FEATURES)
+            y_lin, y_exp = funcs.lin_func(x) + noise, funcs.exp_func(x) + noise
+
+            np.savez_compressed(f'toy_dataset/{distribution_name}{param_idx}', 
+                                x=x, 
+                                y_exp=y_exp,
+                                y_lin=y_lin,
+                                params=params,
+                                split=np.array(split))
 
 def load_toy_dataset(path_to_dataset='./toy_dataset/*.npz', distribution_subset=list(constants.DISTRIGBUTIONS.keys())):
     """ Loading toy dataset from a directory and returning as a dictionary.
     """
         # DATASET
-    dataset = {
-        'x': {},
-        'y': {}
-    }
+    dataset = dict()
     for filepath in glob.glob(path_to_dataset):
         filename = os.path.basename(filepath)
-        distribution_name, feat_or_targ = re.findall('(\w*)_(x|y).npz', filename)[0]
+        distribution_name = re.findall('(\w*).npz', filename)[0]
         if distribution_name in distribution_subset:
-            with np.load(filepath) as file:
-                dataset[feat_or_targ][distribution_name] = file['data']
+            with np.load(filepath, allow_pickle=True) as file:
+                inner_dict = {}
+                for element_name in file.files:
+                    inner_dict[element_name] = file[element_name]
+                dataset[distribution_name] = inner_dict
     return dataset
 
     
 if __name__ == '__main__':
     generate_toy_dataset()
+    dataset = load_toy_dataset()
+    print('ha')
