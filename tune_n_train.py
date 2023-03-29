@@ -48,6 +48,7 @@ def objective(trial):
                         y[:train_size], 
                         validation_data = (transformed_x[train_size:train_size+valid_size], y[train_size:train_size+valid_size]),
                         epochs=constants.EPOCHS,
+#                         epochs = 2,
                         batch_size=constants.BATCH_SIZE,
                         verbose=0,
                         callbacks=callback)
