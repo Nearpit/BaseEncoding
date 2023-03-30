@@ -51,7 +51,7 @@ class BaseEncoder(layers.Layer):
         x = self._split_func(x)
         
         if self.norm:
-            x = x/self.base
+            x = x/(self.base - 1)
         
         x = np.concatenate([sign_array, x], axis=-1, dtype=self.precision_dtype)
         

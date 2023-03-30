@@ -31,9 +31,9 @@ DISTRIGBUTIONS = {
         }]
     ,
     'lognorm': [{
-        's':EXPON_LOC,
-        'loc':EXPON_SCALE,
-        'scale':EXPON_S
+        's':EXPON_S,
+        'loc':EXPON_LOC,
+        'scale':EXPON_SCALE
         }]
 }
 
