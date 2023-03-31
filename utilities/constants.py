@@ -4,7 +4,7 @@ import utilities.funcs as funcs
 from utilities.custom_layers import BaseEncoder, Duplication
 
 # Encoding
-BASES_ARRAY = [2, 3, 4, 8, 16, 32, 36]
+BASES_ARRAY = [2, 3, 4, 8, 16]
 EXPERIMENT_SEEDS = range(5)
 BOOL_ARRAY = [False, True]
 
