@@ -53,10 +53,10 @@ class BaseEncoder(layers.Layer):
         if self.norm:
             x = x/(self.base - 1)
         
-        x = np.concatenate([sign_array, x], axis=-1, dtype=self.precision_dtype)
+        x = np.concatenate([sign_array, x], axis=-1)
         
         if self.keep_origin:
-            x = np.concatenate([inputs, x], axis=-1, dtype=self.precision_dtype)
+            x = np.concatenate([inputs, x], axis=-1)
 
         return tf.convert_to_tensor(x, dtype=self.precision_dtype)
 
