@@ -76,4 +76,3 @@ def load_toy_dataset(path_to_dataset='./toy_dataset/*.npz', distribution_subset=
 if __name__ == '__main__':
     generate_toy_dataset()
     dataset = load_toy_dataset()
-    print('ha')
