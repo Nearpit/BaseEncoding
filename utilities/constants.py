@@ -42,7 +42,14 @@ NORM_SCALE = 1
 
 EXPON_LOC = 1
 EXPON_SCALE = 1
-EXPON_S = 0.6
+EXPON_S = 4
+
+UNI_LOC = -10
+UNI_SCALE = 20
+
+LOGUNI_A = 0.1
+LOGUNI_B = 10
+LOGUNI_SCALE = 10
 
 DISTRIGBUTIONS = {
     'norm': [{
@@ -54,6 +61,17 @@ DISTRIGBUTIONS = {
         's':EXPON_S,
         'loc':EXPON_LOC,
         'scale':EXPON_SCALE
+        }]
+    ,
+    'uniform': [{
+        'loc':UNI_LOC,
+        'scale':UNI_SCALE
+        }]
+    ,
+    'loguniform': [{
+        'a':LOGUNI_A,
+        'b':LOGUNI_B,
+        'scale':LOGUNI_SCALE
         }]
 }
 
