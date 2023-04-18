@@ -14,16 +14,17 @@ NN_DEPTH_RANGE = [2, 5]
 LR_RANGE = [1e-4, 1e-3]
 MAX_NUM_PARAMS = funcs.get_num_params(MAX_NUM_FEATURES, NN_WIDTH_RANGE[-1], NN_DEPTH_RANGE[-1])
 PATIENCE = 20
+DECAY_RANGE = [1e-9, 1e-1]
 
 # NN 
 ACTIVATION = activations.relu
-EPOCHS = 25
+EPOCHS = 1000
 BATCH_SIZE = 1024
 
 
 # Encoding
 BASES_ARRAY = [2, 3, 4, 8, 16]
-EXPERIMENT_SEEDS = range(2)
+EXPERIMENT_SEEDS = range(5)
 BOOL_ARRAY = [False, True]
 N_BINS_DISCR = 32
 N_QUANTILES = 1000
@@ -37,8 +38,8 @@ VALID_SHARE = 0.2
 TRAIN_SHARE = 1 - TEST_SHARE - VALID_SHARE
 
 # Distributions
-NORM_LOC = 5
-NORM_SCALE = 1
+NORM_LOC = 10
+NORM_SCALE = 5
 
 EXPON_LOC = 1
 EXPON_SCALE = 1
@@ -91,7 +92,7 @@ TRANSFORMATIONS = {'numerical_encoding' : {'preproc_layer': BaseEncoder, 'params
                                      'params':[{'n_bins': N_BINS_DISCR, 'strategy':'uniform'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'quantile'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'kmeans'}]},          
-                    'log_transformation' : {'preproc_layer': LogTranformation, 'params':[dict()]}
+                    # 'log_transformation' : {'preproc_layer': LogTranformation, 'params':[dict()]}
                  }
 
 
