@@ -26,13 +26,10 @@ def distribution_data_sampler(dist_name, params, n_samples, n_features, **kwargs
     return data
 
 
-
 def generate_toy_dataset():
     """ Generating a toy dataset based on predefined distributions.
     """
     set_seed(constants.SEED)
-    noise = stats.norm.rvs(size=(constants.N_SAMPLES, 1), loc=constants.NORM_LOC, scale=constants.NORM_SCALE)
-
     index_array = np.arange(constants.N_SAMPLES)
     train_size = round(constants.TRAIN_SHARE*constants.N_SAMPLES)
     valid_size = round(constants.VALID_SHARE*constants.N_SAMPLES)
@@ -41,20 +38,57 @@ def generate_toy_dataset():
               'valid' : index_array[train_size:train_size+valid_size],
               'test' : index_array[-test_size:]
               }
-
     for distribution_name, params_list in constants.DISTRIGBUTIONS.items():
         for param_idx, params in enumerate(params_list):
             if not param_idx:
                 param_idx = ''
-            x = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, constants.N_FEATURES)
-            y_lin, y_exp = funcs.lin_func(x) + noise, funcs.exp_func(x) + noise
 
+            W1 = distribution_data_sampler('uniform', {'loc':constants.W1_LOC, 'scale':constants.W1_SCALE}, 1, 32)
+            W2 = distribution_data_sampler('uniform', {'loc':constants.W2_LOC, 'scale':constants.W2_SCALE}, 1, 32)
+
+            x = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, constants.N_FEATURES)
+            layer_out= (constants.RELU(x@W1))
+            y = constants.TANH(np.dot(layer_out, W2.T))
+
+            np.savez_compressed(f'toy_dataset/weights', 
+                                W1=W1, 
+                                W2=W2)
             np.savez_compressed(f'toy_dataset/{distribution_name}{param_idx}', 
                                 x=x, 
-                                y_exp=y_exp,
-                                y_lin=y_lin,
+                                y=y,
                                 params=params,
                                 split=np.array(split))
+
+
+
+# def generate_toy_dataset():
+#     """ Generating a toy dataset based on predefined distributions.
+#     """
+#     set_seed(constants.SEED)
+#     noise = stats.norm.rvs(size=(constants.N_SAMPLES, 1), loc=constants.NORM_LOC, scale=constants.NORM_SCALE)
+
+#     index_array = np.arange(constants.N_SAMPLES)
+#     train_size = round(constants.TRAIN_SHARE*constants.N_SAMPLES)
+#     valid_size = round(constants.VALID_SHARE*constants.N_SAMPLES)
+#     test_size = round(constants.TEST_SHARE*constants.N_SAMPLES)
+#     split = { 'train' : index_array[:train_size],
+#               'valid' : index_array[train_size:train_size+valid_size],
+#               'test' : index_array[-test_size:]
+#               }
+
+#     for distribution_name, params_list in constants.DISTRIGBUTIONS.items():
+#         for param_idx, params in enumerate(params_list):
+#             if not param_idx:
+#                 param_idx = ''
+#             x = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, constants.N_FEATURES)
+#             y_lin, y_exp = funcs.lin_func(x) + noise, funcs.exp_func(x) + noise
+
+#             np.savez_compressed(f'toy_dataset/{distribution_name}{param_idx}', 
+#                                 x=x, 
+#                                 y_exp=y_exp,
+#                                 y_lin=y_lin,
+#                                 params=params,
+#                                 split=np.array(split))
 
 def load_toy_dataset(path_to_dataset='./toy_dataset/*.npz', distribution_subset=list(constants.DISTRIGBUTIONS.keys())):
     """ Loading toy dataset from a directory and returning as a dictionary.
