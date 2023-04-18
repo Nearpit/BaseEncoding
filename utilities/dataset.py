@@ -38,22 +38,17 @@ def generate_toy_dataset():
               'valid' : index_array[train_size:train_size+valid_size],
               'test' : index_array[-test_size:]
               }
+    noise = stats.norm.rvs(size=(constants.N_SAMPLES, 1), loc=0, scale=1)
+
     for distribution_name, params_list in constants.DISTRIGBUTIONS.items():
         for param_idx, params in enumerate(params_list):
             if not param_idx:
                 param_idx = ''
 
-            W1 = distribution_data_sampler('uniform', {'loc':constants.W1_LOC, 'scale':constants.W1_SCALE}, 1, 32)
-            W2 = distribution_data_sampler('uniform', {'loc':constants.W2_LOC, 'scale':constants.W2_SCALE}, 1, 32)
-
             x = distribution_data_sampler(distribution_name, params, constants.N_SAMPLES, constants.N_FEATURES)
-            layer_out= (constants.RELU(x@W1))
-            y = constants.TANH(np.dot(layer_out, W2.T))
+            y = np.sin(x) + noise
 
-            np.savez_compressed(f'toy_dataset/weights', 
-                                W1=W1, 
-                                W2=W2)
-            np.savez_compressed(f'toy_dataset/{distribution_name}{param_idx}', 
+            np.savez_compressed(f'toy_dataset/sin_y/{distribution_name}{param_idx}', 
                                 x=x, 
                                 y=y,
                                 params=params,
@@ -110,3 +105,4 @@ def load_toy_dataset(path_to_dataset='./toy_dataset/*.npz', distribution_subset=
 if __name__ == '__main__':
     generate_toy_dataset()
     dataset = load_toy_dataset()
+    print('check')
