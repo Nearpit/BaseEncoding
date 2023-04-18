@@ -9,6 +9,8 @@ from tensorflow.keras import layers
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 
 
+
+
 class BaseEncoder(layers.Layer):
     def __init__(self, base=2, norm=False, keep_origin=False, precision_dtype=np.float32, trainable=False):
         """ Inner Keras layer to transform values to the chosen base
@@ -28,7 +30,6 @@ class BaseEncoder(layers.Layer):
         super().__init__(trainable=trainable)
         self.base = base
         self.norm = norm
-        self.keep_origin = keep_origin
         self.precision_dtype = precision_dtype
         self.column_width = int(precision_dtype.__name__[-2:])
 
@@ -43,20 +44,16 @@ class BaseEncoder(layers.Layer):
     def call(self, inputs, training=False):
         
         inputs = tf.cast(inputs, self.precision_dtype)
-        sign_array = np.expand_dims(np.array(inputs < 0), axis=-1)
+        sign_array = np.array(inputs < 0)
         x = np.abs(inputs, dtype=self.precision_dtype)
-        inputs = tf.expand_dims(inputs, axis=-1)
         x = np.vectorize(self._rebase_func)(x)
         x = np.vectorize(self._padding_func)(x)
-        x = self._split_func(x)
+        x = self._split_func(np.squeeze(x, axis=-1))
         
         if self.norm:
             x = x/(self.base - 1)
         
         x = np.concatenate([sign_array, x], axis=-1)
-        
-        if self.keep_origin:
-            x = np.concatenate([inputs, x], axis=-1)
 
         return tf.convert_to_tensor(x, dtype=self.precision_dtype)
 
@@ -97,23 +94,57 @@ class BaseDecoder(layers.Layer):
         output = abs_vals*neg_vals
 
         return tf.convert_to_tensor(output, dtype=self.precision_dtype)
+    
+class SklearnPreprocessing(layers.Layer):
+    def __init__(self, transfromation_func, trainable=False, **kwargs):
+        super().__init__(trainable, **kwargs)
+        self.transformation_layer = transfromation_func
+    def call(self, inputs):
+        x = self.transformation_layer.fit_transform(tf.squeeze(inputs, axis=-1))
+        return tf.expand_dims(tf.cast(x, tf.float32), axis=1)
+    
 
-class CustomNormalization(Normalization):
-    def __init__(self, axis=-1, dtype=None, mean=None, variance=None, keep_origin=False, **kwargs):
-        super().__init__(axis, dtype, mean, variance, **kwargs)
+class PreprocessingWrapper(layers.Layer):
+    def __init__(self,
+                 tranformation_layer,
+                 keep_origin=False,
+                 duplicate=1,
+                 trainable=False,
+                 name=None, 
+                 dtype=None, 
+                 dynamic=False, 
+                 **kwargs):
+            
+        super().__init__(trainable, name, dtype, dynamic, **kwargs)
+        self.tranformation_layer = tranformation_layer
         self.keep_origin = keep_origin
+        self.duplicate = duplicate
+
+
+    def call(self, inputs):
+        inputs = tf.expand_dims(inputs, axis=-1)
+        original_inputs = tf.identity(inputs)
+        transformed_x = self.tranformation_layer(inputs)
+        transformed_x = transformed_x*tf.ones((transformed_x.shape[0], transformed_x.shape[1], self.duplicate))
+        if self.keep_origin:
+            transformed_x = np.concatenate([original_inputs, transformed_x], axis=-1)
+        return transformed_x
+   
+class CustomNormalization(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.norm_layer = Normalization()
 
     def call(self, inputs, training=False):
-        inputs = tf.expand_dims(inputs, axis=-1)
-        normalized_values = super().call(inputs)
-        return normalized_values
+        self.norm_layer.adapt(inputs)
+        return self.norm_layer(inputs)
     
-class Duplication(layers.Layer):
-    def __init__(self, width, precision_dtype=np.float32, trainable=False, **kwargs):
-        super().__init__(trainable, **kwargs)
-        self.precision_dtype=precision_dtype
-        self.width=width
-    def call(self, inputs, **kwargs):
-        inputs = tf.expand_dims(tf.cast(inputs, self.precision_dtype), axis=-1)
-        outputs = inputs*np.ones([inputs.shape[-1], self.width])
-        return tf.convert_to_tensor(outputs, dtype=self.precision_dtype)
+class LogTranformation(layers.Layer):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def call(self, inputs, training=False):
+        x = tf.math.log(inputs)
+        return x
+
+

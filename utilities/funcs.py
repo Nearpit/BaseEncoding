@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import random
 import os
-from utilities.custom_layers import CustomNormalization
+from tensorflow.keras.layers.experimental.preprocessing import Normalization
 
 lin_func = lambda x, a=2, b=5: a*x + b
 exp_func = lambda x, a=0.8, b=0.2: np.exp(a*x + b)
@@ -46,12 +46,13 @@ def set_seed(seed=42):
     tf.config.threading.set_inter_op_parallelism_threads(1)
     tf.config.threading.set_intra_op_parallelism_threads(1) 
 
-def apply_normalization(inputs, keep_origin=False, **kwargs):
+def apply_normalization(inputs, **kwargs):
     """ A regular keras normalization layer but with the option to store the initial values as an additional channel.
     
     Args:
     keep_origin(bool) - indicating whether to store initial values as an additional channel.
     """
-    layer = CustomNormalization(keep_origin=keep_origin, **kwargs)
+    layer = Normalization()
     layer.adapt(inputs)
     return layer(inputs)
+
