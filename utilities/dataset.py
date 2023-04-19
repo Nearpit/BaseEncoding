@@ -9,6 +9,8 @@ import scipy.stats as stats
 
 from utilities import constants, funcs
 from utilities.funcs import set_seed
+import tweedie
+
 
 
 def distribution_data_sampler(dist_name, params, n_samples, n_features, **kwargs):
@@ -20,24 +22,50 @@ def distribution_data_sampler(dist_name, params, n_samples, n_features, **kwargs
     n_samples(int) - number of generating samples
     n_features(int) - number of generating features
     """
-        
-    dist = getattr(stats, dist_name)
-    data = dist.rvs(size=[n_samples, n_features], **params)
-    return data
+    if dist_name == 'tweedie':
+        dist = tweedie.tweedie
+    elif dist_name == 'multimodal':
+        dist = stats.norm
+        modal_number = len(params)
+    else:
+        dist = getattr(stats, dist_name)
+    
 
+    if dist_name == 'multimodal':
+        data = np.array([[]]).reshape(0, n_features)
+        for k, v in params.items():
+            vals =  dist.rvs(size=[n_samples//modal_number, n_features], **params[k])
+            data = np.vstack((data, vals))
+    else:
+        data = dist.rvs(size=[n_samples, n_features], **params)
+    return np.sort(data, axis=0)
 
 def generate_toy_dataset():
     """ Generating a toy dataset based on predefined distributions.
     """
     set_seed(constants.SEED)
-    index_array = np.arange(constants.N_SAMPLES)
-    train_size = round(constants.TRAIN_SHARE*constants.N_SAMPLES)
     valid_size = round(constants.VALID_SHARE*constants.N_SAMPLES)
     test_size = round(constants.TEST_SHARE*constants.N_SAMPLES)
-    split = { 'train' : index_array[:train_size],
-              'valid' : index_array[train_size:train_size+valid_size],
-              'test' : index_array[-test_size:]
+
+    beyond_size = round(constants.LAST_SAMPLES_SHARE*constants.N_SAMPLES)
+
+    index_array = np.arange(constants.N_SAMPLES)
+
+    regular_range, beyond_range = index_array[:-beyond_size], index_array[-beyond_size:]
+
+    test_indices = np.random.choice(regular_range, size = test_size, replace=False)
+    regular_range = regular_range[~np.isin(regular_range, test_indices)]
+    valid_indices = np.random.choice(regular_range, size = valid_size, replace=False)
+    train_indices =  regular_range[~np.isin(regular_range, valid_indices)]
+    np.random.shuffle(train_indices)
+
+    split = { 'train' : train_indices,
+              'valid' : valid_indices,
+              'test' :  { 'beyond' : beyond_range,
+                          'within' : test_indices
+                         }
               }
+    
     noise = stats.norm.rvs(size=(constants.N_SAMPLES, 1), loc=0, scale=1)
 
     for distribution_name, params_list in constants.DISTRIGBUTIONS.items():
@@ -85,12 +113,12 @@ def generate_toy_dataset():
 #                                 params=params,
 #                                 split=np.array(split))
 
-def load_toy_dataset(path_to_dataset='./toy_dataset/*.npz', distribution_subset=list(constants.DISTRIGBUTIONS.keys())):
+def load_toy_dataset(path='./toy_dataset/*.npz', distribution_subset=list(constants.DISTRIGBUTIONS.keys())):
     """ Loading toy dataset from a directory and returning as a dictionary.
     """
         # DATASET
     dataset = dict()
-    for filepath in glob.glob(path_to_dataset):
+    for filepath in glob.glob(path):
         filename = os.path.basename(filepath)
         distribution_name = re.findall('(\w*).npz', filename)[0]
         if distribution_name in distribution_subset:
