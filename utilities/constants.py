@@ -11,7 +11,7 @@ from utilities.custom_layers import BaseEncoder, SklearnPreprocessing, CustomNor
 MAX_NUM_FEATURES = 32
 NN_WIDTH_RANGE = [16, 128]
 NN_DEPTH_RANGE = [2, 5]
-LR_RANGE = [1e-4, 1e-3]
+LR_RANGE = [1e-4, 1e-2]
 MAX_NUM_PARAMS = funcs.get_num_params(MAX_NUM_FEATURES, NN_WIDTH_RANGE[-1], NN_DEPTH_RANGE[-1])
 PATIENCE = 20
 DECAY_RANGE = [0, 1]
@@ -24,7 +24,7 @@ BATCH_SIZE = 1024
 
 
 # Encoding
-BASES_ARRAY = [2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 16, 20, 24, 32, 36]
+BASES_ARRAY = [2, 3, 4, 6, 8, 12, 16, 24, 32]
 EXPERIMENT_SEEDS = range(10)
 BOOL_ARRAY = [False, True]
 N_BINS_DISCR = 32
