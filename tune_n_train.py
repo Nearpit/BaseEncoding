@@ -20,7 +20,7 @@ from utilities.custom_layers import BaseEncoder, PreprocessingWrapper
 physical_devices = tf.config.list_physical_devices('GPU') 
 for device in physical_devices:
     tf.config.experimental.set_memory_growth(device, True)
-# optuna.logging.set_verbosity(optuna.logging.WARNING)
+optuna.logging.set_verbosity(optuna.logging.INFO)
 logging.basicConfig(level='INFO')
 
 def build_model(depth, width, lr, n_features, l1=0, l2=0):
