@@ -100,7 +100,7 @@ for base in BASES_ARRAY:
         current_params = {'base':base, 'norm':norm}
         TRANSFORMATIONS['numerical_encoding']['params'].append(current_params)
 
-# Test set up
-EPOCHS = 10
-OPTUNA_N_TRIALS = 2
-EXPERIMENT_SEEDS = range(2)
+# # Test set up
+# EPOCHS = 10
+# OPTUNA_N_TRIALS = 2
+# EXPERIMENT_SEEDS = range(2)
