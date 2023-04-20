@@ -18,7 +18,8 @@ DECAY_RANGE = [0, 1]
 
 # NN 
 ACTIVATION = activations.relu
-EPOCHS = 10
+EPOCHS = 1000
+OPTUNA_N_TRIALS = 100
 BATCH_SIZE = 1024
 
 
@@ -48,7 +49,7 @@ DISTRIGBUTIONS = {
     'lognorm': [{
         's':1,
         'loc':0.3,
-        'scale':10e9
+        'scale':10e5
         }]
     ,
     'uniform': [{
@@ -59,7 +60,7 @@ DISTRIGBUTIONS = {
     'loguniform': [{
         'a': 0.1,
         'b':10,
-        'scale':1e9
+        'scale':1e6
         }],
     'multimodal': [{
     '1':{'loc' : 3, 'scale': 2},
@@ -87,7 +88,7 @@ TRANSFORMATIONS = {'identity': {'preproc_layer': Layer, 'params':[dict()]},
                                      'params':[{'n_bins': N_BINS_DISCR, 'strategy':'uniform'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'quantile'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'kmeans'}]}, 
-                    'numerical_encoding' : {'preproc_layer': BaseEncoder, 'params':[]}        
+                    'numerical_encoding' : {'preproc_layer': BaseEncoder, 'params':[]},        
                     # 'log_transformation' : {'preproc_layer': LogTranformation, 'params':[dict()]}
                  }
 
@@ -98,3 +99,8 @@ for base in BASES_ARRAY:
             continue
         current_params = {'base':base, 'norm':norm}
         TRANSFORMATIONS['numerical_encoding']['params'].append(current_params)
+
+# Test set up
+EPOCHS = 10
+OPTUNA_N_TRIALS = 2
+EXPERIMENT_SEEDS = range(2)

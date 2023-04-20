@@ -1,22 +1,26 @@
 import pickle
 import logging
+
 import numpy as np 
 import optuna
-optuna.logging.set_verbosity(optuna.logging.WARNING)
+
 
 from sklearn.metrics import mean_squared_error as mse
 
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
-physical_devices = tf.config.list_physical_devices('GPU') 
-for device in physical_devices:
-    tf.config.experimental.set_memory_growth(device, True)
 
 import utilities.constants as constants
 import utilities.funcs as funcs
 from utilities.dataset import load_toy_dataset
 from utilities.custom_layers import BaseEncoder, PreprocessingWrapper
+
+
+physical_devices = tf.config.list_physical_devices('GPU') 
+for device in physical_devices:
+    tf.config.experimental.set_memory_growth(device, True)
+# optuna.logging.set_verbosity(optuna.logging.WARNING)
 logging.basicConfig(level='INFO')
 
 def build_model(depth, width, lr, n_features, l1=0, l2=0):
@@ -64,7 +68,7 @@ def objective(trial):
 pcs = 8 # PRINT_COLUMN_SIZE
 if __name__ == '__main__':
     results = []
-    dataset = load_toy_dataset('./toy_dataset/sin_y/norm.npz')
+    dataset = load_toy_dataset('./toy_dataset/sin_y/*.npz')
     params_id = 0
 
     y_name = 'sin'
@@ -85,6 +89,9 @@ if __name__ == '__main__':
                     for duplication in [1, constants.MAX_NUM_FEATURES]:
                         if (transformation_name == 'numerical_encoding' or transformation_name == 'k_bins_discr') and duplication == constants.MAX_NUM_FEATURES:
                             continue
+                        if transformation_name == 'identity' and keep_origin == True:
+                            continue 
+                        
                         funcs.set_seed(constants.SEED)
                         logging.info(f"{'x':<{pcs}} {'transformation_name':<{int(3*pcs)}} {'params':<{int(7*pcs)}} {'keep_origin':<{int(2*pcs)}}, {'duplication':<{int(2*pcs)}}")
                         logging.info(f'{x_name:<{pcs}} {transformation_name:<{int(3*pcs)}} {str(params):<{int(7*pcs)}} {keep_origin:<{int(2*pcs)}} {duplication:<{int(2*pcs)}}')
@@ -92,7 +99,7 @@ if __name__ == '__main__':
                         current_layer = PreprocessingWrapper(transformation_layer(**params), keep_origin=keep_origin, duplicate=duplication)
                         transformed_x = current_layer(x)
                         study = optuna.create_study(direction="minimize")
-                        study.optimize(objective, n_trials=100)
+                        study.optimize(objective, n_trials=constants.OPTUNA_N_TRIALS)
 
                         trial = study.best_trial
 
