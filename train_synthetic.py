@@ -23,52 +23,46 @@ for device in physical_devices:
 optuna.logging.set_verbosity(optuna.logging.INFO)
 logging.basicConfig(level='INFO')
 
-def build_model(depth, width, lr, n_features, l1=0, l2=0):
+def build_model(depth, width, lr, n_features, l2=0):
     model = keras.Sequential()
-    regularization = keras.regularizers.L1L2(l1=l1, l2=l2)
-    n_features = x.shape[-1]
-    new_channel_size = transformed_x.shape[-1]
-    model.add(keras.Input(shape=(n_features, new_channel_size)))
+    regularization = keras.regularizers.L1L2(l2=l2)
+    model.add(keras.Input(shape=(n_features)))
     for _ in range(depth - 1):
         model.add(layers.Dense(width, activation=constants.ACTIVATION, kernel_regularizer=regularization))
     model.add(layers.Flatten())
     model.add(layers.Dense(1))
     loss = tf.keras.losses.MeanSquaredError()
     optimizer = keras.optimizers.Adam(learning_rate=lr)
-    model.compile(optimizer=optimizer, loss=loss)
+    model.compile(optimizer=optimizer, loss=loss, metrics=[tf.keras.metrics.MeanSquaredError()])
     return model
 
 
 def objective(trial):
     # Regularization
 
-    regularization = {'l1':trial.suggest_float("l1", constants.DECAY_RANGE[0], constants.DECAY_RANGE[1]), 
-                      'l2':trial.suggest_float("l2", constants.DECAY_RANGE[0], constants.DECAY_RANGE[1])}
-
+    l2 = trial.suggest_float("l2", constants.DECAY_RANGE[0], constants.DECAY_RANGE[1], log=True)
 
     n_features = transformed_x.shape[-1]
-
-
-    depth = trial.suggest_int("depth", constants.NN_DEPTH_RANGE[0], constants.NN_DEPTH_RANGE[-1])
-    lr = trial.suggest_float("lr", constants.LR_RANGE[0], constants.LR_RANGE[-1])
-    max_width = funcs.get_layer_width(n_features, constants.MAX_NUM_PARAMS + 1, constants.NN_DEPTH_RANGE[-1])
-    width = trial.suggest_int(f"width", constants.NN_WIDTH_RANGE[0], max_width) 
+    depth = trial.suggest_int("depth", constants.NN_DEPTH_RANGE[0], constants.NN_DEPTH_RANGE[1])
+    lr = trial.suggest_float("lr", constants.LR_RANGE[0], constants.LR_RANGE[1], log=True)
+    width = trial.suggest_int(f"width", constants.NN_WIDTH_RANGE[0], constants.NN_WIDTH_RANGE[1]) 
     
-    model = build_model(depth, width, lr, n_features, **regularization)
+    
+    model = build_model(depth, width, lr, n_features, l2)
     callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
     history = model.fit(tf.gather_nd(transformed_x ,train_split), 
-                        y[train_split], 
-                        validation_data = (tf.gather_nd(transformed_x ,valid_split), y[valid_split]),
+                        y[train_split.ravel()], 
+                        validation_data = (tf.gather_nd(transformed_x ,valid_split), y[valid_split.ravel()]),
                         epochs=constants.EPOCHS,
                         batch_size=constants.BATCH_SIZE,
                         verbose=0,
                         callbacks=callback)
-    return np.median(history.history['loss'][-constants.PATIENCE:])
+    return np.median(history.history['mean_squared_error'][-constants.PATIENCE:])
 
 pcs = 8 # PRINT_COLUMN_SIZE
 if __name__ == '__main__':
     results = []
-    dataset = load_toy_dataset('./toy_dataset/sin_y/*.npz')
+    dataset = load_toy_dataset('datasets/synthetic/sin_y/*.npz')
     params_id = 0
 
     y_name = 'sin'
@@ -86,7 +80,7 @@ if __name__ == '__main__':
             tranformation_params = transormation_loaders['params']
             for params in tranformation_params:
                 for keep_origin in [False, True]:
-                    for duplication in [1, constants.MAX_NUM_FEATURES]:
+                    for duplication in [False, constants.MAX_NUM_FEATURES]:
                         if (transformation_name == 'numerical_encoding' or transformation_name == 'k_bins_discr') and duplication == constants.MAX_NUM_FEATURES:
                             continue
                         if transformation_name == 'identity' and keep_origin == True:
@@ -111,7 +105,7 @@ if __name__ == '__main__':
 
                             callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
                             history = model.fit(tf.gather_nd(transformed_x ,train_split), 
-                                                y[train_split], 
+                                                y[train_split.ravel()], 
                                                 validation_data = (tf.gather_nd(transformed_x , valid_split), y[valid_split]),
                                                 epochs=constants.EPOCHS,
                                                 batch_size=constants.BATCH_SIZE,
@@ -123,8 +117,8 @@ if __name__ == '__main__':
                             predict_beyond = model.predict(tf.gather_nd(transformed_x ,test_beyond_split))
                             y_pure_beyond = np.sin((x[test_beyond_split]))
 
-                            score_noised_within = mse(predict_within, y[test_within_split].squeeze(-1))
-                            score_noised_beyond = mse(predict_beyond, y[test_beyond_split].squeeze(-1))
+                            score_noised_within = mse(predict_within, y[test_within_split.ravel()].squeeze(-1))
+                            score_noised_beyond = mse(predict_beyond, y[test_beyond_split.ravel()].squeeze(-1))
 
                             score_pure_within = mse(predict_within, y_pure_within.squeeze(-1))
                             score_pure_beyond = mse(predict_beyond, y_pure_beyond.squeeze(-1))
@@ -151,6 +145,6 @@ if __name__ == '__main__':
                                             })
                         params_id += 1
                         print()
-                        with open(f'only_inputs_results.pkl', 'wb') as file:
+                        with open(f'results/synthetic.pkl', 'wb') as file:
                             pickle.dump(results, file)
 

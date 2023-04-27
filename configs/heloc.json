@@ -1,0 +1,6 @@
+{
+    "objective": "binary",
+    "batch_size": 512,
+    "target_idx" : 0,
+    "cat_idx": [22, 23]
+}

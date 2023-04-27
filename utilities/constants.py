@@ -123,7 +123,7 @@ for base in BASES_ARRAY:
 #LOGGING
 PCS = 8# PRINT_COLUMN_SIZE
 
-# # Test set up
-# EPOCHS = 2
+# Test set up
+# EPOCHS = 10
 # OPTUNA_N_TRIALS = 2
 # EXPERIMENT_SEEDS = range(1)
