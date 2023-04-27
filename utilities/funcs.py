@@ -2,11 +2,14 @@ import numpy as np
 import tensorflow as tf
 import random
 import os
+import argparse
 from tensorflow.keras.layers.experimental.preprocessing import Normalization
 
-lin_func = lambda x, a=2, b=5: a*x + b
-exp_func = lambda x, a=0.8, b=0.2: np.exp(a*x + b)
-
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', type=str, nargs='?', choices=['adult', 'higgs', 'covtype', 'california'], required=True)
+    args = parser.parse_args()
+    return args
 
 def get_num_params(n, width, depth):
     """ Calculating total trainable parameters based on:
