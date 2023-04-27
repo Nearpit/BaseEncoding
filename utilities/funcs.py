@@ -7,7 +7,7 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dataset', type=str, nargs='?', choices=['adult', 'higgs', 'covtype', 'california'], required=True)
+    parser.add_argument('-d', '--dataset', type=str, nargs='?', choices=['adult', 'higgs', 'heloc', 'covtype', 'california'], required=True)
     args = parser.parse_args()
     return args
 

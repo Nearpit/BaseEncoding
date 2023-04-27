@@ -50,7 +50,7 @@ def objective(trial):
                         verbose=1,
                         callbacks=callback)
     metric_to_follow = constants.EVAL_METRICS[configs['objective']][0]['name']
-    return np.median(history.history[f'val_{metric_to_follow}'][-constants.PATIENCE:])
+    return np.median(history.history[f'{metric_to_follow}'][-constants.PATIENCE:])
 
 if __name__ == "__main__":
     funcs.set_seed()

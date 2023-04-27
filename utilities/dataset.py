@@ -23,7 +23,8 @@ TARGET_FUNCS = {
     'adult' : lambda x: x.reshape(-1, 1),
     'covtype': covtype_target,
     'california': lambda x: x.reshape(-1, 1),
-    'higgs': lambda x: x.reshape(-1, 1)
+    'higgs': lambda x: x.reshape(-1, 1),
+    'heloc': lambda x: x.reshape(-1, 1)
     }
 
 
