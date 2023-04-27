@@ -1,0 +1,6 @@
+{
+    "objective": "regression",
+    "batch_size": 128,
+    "target_idx" : 8,
+    "cat_idx": []
+}
