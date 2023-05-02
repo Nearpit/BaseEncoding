@@ -13,6 +13,12 @@ NN_DEPTH_RANGE = [1, 7]
 LR_RANGE = [1e-5, 5e-3] 
 DECAY_RANGE = [1e-6, 5e-1]
 
+#PRUNER
+# It won't prune until get to MIN_RESOURCE*REDUCTION_FACTOR trials
+MIN_RESOURCE = 10
+REDUCTION_FACTOR = 3
+
+
 MAX_NUM_FEATURES = 32
 MAX_NUM_PARAMS = funcs.get_num_params(MAX_NUM_FEATURES, NN_WIDTH_RANGE[-1], NN_DEPTH_RANGE[-1])
 PATIENCE = 20
@@ -92,9 +98,16 @@ TRANSFORMATIONS = {'identity': {'preproc_layer': Layer, 'params':[dict()]},
                                      'params':[{'n_bins': N_BINS_DISCR, 'strategy':'uniform'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'quantile'},
                                                {'n_bins': N_BINS_DISCR, 'strategy':'kmeans'}]}, 
-                    'numerical_encoding' : {'preproc_layer': BaseEncoder, 'params':[]}
+                    'numerical_encoding' : {'preproc_layer': BaseEncoder, 'params':[]},
                  }
+for base in BASES_ARRAY:
+    for norm in BOOL_ARRAY:
+        if base == 2 and norm == True:
+            continue
+        current_params = {'base':base, 'norm':norm}
+        TRANSFORMATIONS['numerical_encoding']['params'].append(current_params)
 
+        
 LOSSES = {
     "binary": tf.keras.losses.BinaryCrossentropy(),
     "regression" : tf.keras.losses.MeanSquaredError(),
@@ -113,17 +126,12 @@ ACTIVATIONS = {
     "classification": tf.keras.activations.softmax,
 }
 
-for base in BASES_ARRAY:
-    for norm in BOOL_ARRAY:
-        if base == 2 and norm == True:
-            continue
-        current_params = {'base':base, 'norm':norm}
-        TRANSFORMATIONS['numerical_encoding']['params'].append(current_params)
+
 
 #LOGGING
 PCS = 8# PRINT_COLUMN_SIZE
 
-# Test set up
-# EPOCHS = 10
-# OPTUNA_N_TRIALS = 2
+# # Test set up
+# EPOCHS = 1000
+# OPTUNA_N_TRIALS = 100
 # EXPERIMENT_SEEDS = range(1)

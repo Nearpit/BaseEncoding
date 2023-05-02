@@ -49,7 +49,8 @@ def objective(trial):
     
     
     model = build_model(depth, width, lr, n_features, l2)
-    callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
+    callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE),
+                optuna.integration.TFKerasPruningCallback(trial, 'val_mean_squared_error')]
     history = model.fit(tf.gather_nd(transformed_x ,train_split), 
                         y[train_split.ravel()], 
                         validation_data = (tf.gather_nd(transformed_x ,valid_split), y[valid_split.ravel()]),
@@ -57,7 +58,7 @@ def objective(trial):
                         batch_size=constants.BATCH_SIZE,
                         verbose=0,
                         callbacks=callback)
-    return np.median(history.history['mean_squared_error'][-constants.PATIENCE:])
+    return np.median(history.history['val_mean_squared_error'][-constants.PATIENCE:])
 
 pcs = 8 # PRINT_COLUMN_SIZE
 if __name__ == '__main__':
@@ -92,7 +93,9 @@ if __name__ == '__main__':
 
                         current_layer = PreprocessingWrapper(transformation_layer(**params), keep_origin=keep_origin, duplicate=duplication)
                         transformed_x = current_layer(x)
-                        study = optuna.create_study(direction="minimize")
+                        study = optuna.create_study(direction="minimize", 
+                                                    pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource=constants.MIN_RESOURCE, 
+                                                                                                  reduction_factor=constants.REDUCTION_FACTOR))
                         study.optimize(objective, n_trials=constants.OPTUNA_N_TRIALS)
 
                         trial = study.best_trial
