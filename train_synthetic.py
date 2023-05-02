@@ -65,9 +65,11 @@ if __name__ == '__main__':
     results = []
     dataset = load_toy_dataset('datasets/synthetic/sin_y/*.npz')
     params_id = 0
-
+    dist_array = ['loguniform', 'multimodal', 'tweedie', 'uniform', 'norm']
     y_name = 'sin'
     for x_name, loader in dataset.items():
+        if x_name not in dist_array:
+            continue
         for variable in ['x', 'y', 'split']:
             exec(f'{variable} = loader[variable]')
         split = np.expand_dims(split, axis=0)[0]
