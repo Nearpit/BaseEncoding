@@ -94,8 +94,8 @@ if __name__ == '__main__':
                         current_layer = PreprocessingWrapper(transformation_layer(**params), keep_origin=keep_origin, duplicate=duplication)
                         transformed_x = current_layer(x)
                         study = optuna.create_study(direction="minimize", 
-                                                    pruner=optuna.pruners.SuccessiveHalvingPruner(min_resource=constants.MIN_RESOURCE, 
-                                                                                                  reduction_factor=constants.REDUCTION_FACTOR))
+                                                    pruner=optuna.pruners.MedianPruner(n_startup_trials=constants.N_STARTUP_TRIALS, 
+                                                                                        n_warmup_steps= constants.N_WARMUP_STEPS))
                         study.optimize(objective, n_trials=constants.OPTUNA_N_TRIALS)
 
                         trial = study.best_trial
