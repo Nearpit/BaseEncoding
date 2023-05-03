@@ -72,8 +72,6 @@ if __name__ == '__main__':
     params_id = 0
     y_name = 'sin'
     for x_name, loader in dataset.items():
-        if x_name not in dist_array:
-            continue
         for variable in ['x', 'y', 'split']:
             exec(f'{variable} = loader[variable]')
         split = np.expand_dims(split, axis=0)[0]
@@ -154,6 +152,6 @@ if __name__ == '__main__':
                                             })
                         params_id += 1
                         print()
-                        with open(f'results/synthetic.pkl', 'wb') as file:
+                        with open(f'results/{x_name}.pkl', 'wb') as file:
                             pickle.dump(results, file)
 
