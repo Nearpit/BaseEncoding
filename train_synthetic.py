@@ -1,5 +1,6 @@
 import pickle
 import logging
+import argparse
 
 import numpy as np 
 import optuna
@@ -63,9 +64,12 @@ def objective(trial):
 pcs = 8 # PRINT_COLUMN_SIZE
 if __name__ == '__main__':
     results = []
-    dataset = load_toy_dataset('datasets/synthetic/sin_y/*.npz')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--dataset', type=str, nargs='?', choices=['norm', 'lognorm', 'uniform', 'loguniform', 'multimodal', 'tweedie'], required=True)
+    args = parser.parse_args()
+    dataset = load_toy_dataset(f'datasets/synthetic/{args.dataset}.npz')
+
     params_id = 0
-    dist_array = ['loguniform', 'multimodal', 'tweedie', 'uniform', 'norm']
     y_name = 'sin'
     for x_name, loader in dataset.items():
         if x_name not in dist_array:
