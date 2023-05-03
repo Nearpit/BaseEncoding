@@ -8,6 +8,24 @@ from tensorflow.keras.layers.experimental.preprocessing import Normalization
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset', type=str, nargs='?', choices=['adult', 'higgs', 'heloc', 'covtype', 'california'], required=True)
+    parser.add_argument('-t', 
+                        '--transformation',
+                        nargs='+',
+                        choices=['identity', 
+                                'standardization',
+                                'yeo_johnson',
+                                'quantilation',
+                                'min_max_scaler',
+                                'k_bins_discr',
+                                'numerical_encoding'],
+                        default=['identity', 
+                                'standardization',
+                                'yeo_johnson',
+                                'quantilation',
+                                'min_max_scaler',
+                                'k_bins_discr',
+                                'numerical_encoding'])
+
     args = parser.parse_args()
     return args
 

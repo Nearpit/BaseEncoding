@@ -50,7 +50,7 @@ def objective(trial):
                         validation_data = (tf.gather_nd(x ,validate), y[validate.ravel()]),
                         epochs=constants.EPOCHS,
                         batch_size=configs['batch_size'],
-                        verbose=1,
+                        verbose=0,
                         callbacks=callback)
     return np.median(history.history[f'val_{metric_to_follow}'][-constants.PATIENCE:])
 
@@ -61,9 +61,11 @@ if __name__ == "__main__":
     y, x_cat, x_num = preprocess(df=df, df_name=args.dataset, configs=configs)
     train, validate, test = get_split(df)
     params_id = 0
-    results = []
 
     for transformation_name, transormation_loaders in constants.TRANSFORMATIONS.items():
+        if transformation_name not in args.transformation:
+            continue
+        results = []
         transformation_layer = transormation_loaders['preproc_layer']
         tranformation_params = transormation_loaders['params']
         for params in tranformation_params:
@@ -98,7 +100,7 @@ if __name__ == "__main__":
                                         validation_data = (tf.gather_nd(x , validate), y[validate.ravel()]),
                                         epochs=constants.EPOCHS,
                                         batch_size=configs['batch_size'],
-                                        verbose=1,
+                                        verbose=0,
                                         callbacks=callback)
                     scores =  model.evaluate(tf.gather_nd(x ,test), y[test.ravel()], batch_size=configs['batch_size'], verbose=0)
                     logging.info(f"SEED {seed} {scores}")
@@ -117,5 +119,5 @@ if __name__ == "__main__":
                                     })
                 params_id += 1
                 print()
-                with open(f'results/{args.dataset}_results.pkl', 'wb') as file:
+                with open(f'results/{transformation_name}_{args.dataset}_results.pkl', 'wb') as file:
                     pickle.dump(results, file)
