@@ -1,6 +1,6 @@
 {
     "objective": "classification",
-    "batch_size": 1024,
+    "batch_size": 8192,
     "target_idx" : 54,
     "cat_idx": []
 }
