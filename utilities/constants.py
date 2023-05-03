@@ -8,8 +8,8 @@ import utilities.funcs as funcs
 from utilities.custom_layers import BaseEncoder, SklearnPreprocessing, CustomNormalization
 
 # TUNNING 
-NN_WIDTH_RANGE = [16, 256]
-NN_DEPTH_RANGE = [1, 7]
+NN_WIDTH_RANGE = [16, 128]
+NN_DEPTH_RANGE = [1, 5]
 LR_RANGE = [1e-5, 5e-3] 
 DECAY_RANGE = [1e-6, 5e-1]
 
@@ -132,5 +132,5 @@ PCS = 8# PRINT_COLUMN_SIZE
 
 # # Test set up
 # EPOCHS = 100
-# OPTUNA_N_TRIALS = 100
+# OPTUNA_N_TRIALS = 10
 # EXPERIMENT_SEEDS = range(1)

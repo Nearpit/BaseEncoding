@@ -41,7 +41,10 @@ def objective(trial):
     width = trial.suggest_int(f"width", constants.NN_WIDTH_RANGE[0], constants.NN_WIDTH_RANGE[1]) 
     
     model = build_model(depth, width, lr, n_features, l2)
-    callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE)]
+    metric_to_follow = constants.EVAL_METRICS[configs['objective']][0]['name']
+
+    callback = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=constants.PATIENCE), 
+                optuna.integration.TFKerasPruningCallback(trial, f'val_{metric_to_follow}')]
     history = model.fit(tf.gather_nd(x, train), 
                         y[train.ravel()], 
                         validation_data = (tf.gather_nd(x ,validate), y[validate.ravel()]),
@@ -49,8 +52,7 @@ def objective(trial):
                         batch_size=configs['batch_size'],
                         verbose=1,
                         callbacks=callback)
-    metric_to_follow = constants.EVAL_METRICS[configs['objective']][0]['name']
-    return np.median(history.history[f'{metric_to_follow}'][-constants.PATIENCE:])
+    return np.median(history.history[f'val_{metric_to_follow}'][-constants.PATIENCE:])
 
 if __name__ == "__main__":
     funcs.set_seed()
@@ -78,7 +80,9 @@ if __name__ == "__main__":
                 x_num_transformed = current_layer(x_num)
                 x = tf.concat((x_num_transformed, tf.cast(x_cat, tf.float32)), axis=-1)
 
-                study = optuna.create_study(direction="minimize")
+                study = optuna.create_study(direction="minimize",
+                                            pruner=optuna.pruners.MedianPruner(n_startup_trials=constants.N_STARTUP_TRIALS, 
+                                                                               n_warmup_steps= constants.N_WARMUP_STEPS))
                 study.optimize(objective, n_trials=constants.OPTUNA_N_TRIALS)
 
                 trial = study.best_trial
